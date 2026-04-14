@@ -41,8 +41,11 @@ const connectToMongo = async () => {
 
 const HeroInfoSchema = new mongoose.Schema(
   {
-    text: String,
-    author: String,
+    image: String,
+    title: String,
+    paragraph: String,
+    buttonText: String,
+    buttonLink: String
   },
   {
     collection: "HeroInfo",
@@ -92,13 +95,13 @@ app.get("/api/hero", async (req: Request, res: Response) => {
 // POST DE LAS FRASES
 app.post("/api/hero", async (req: Request, res: Response) => {
   try {
-    const { text, author } = req.body;
-    if (!text || !author) {
-      res.status(400).json({ error: "Debes enviar texto y autor, espabila!!" });
+    const { image, title, paragraph, buttonText, buttonLink } = req.body;
+    if (!image || !title || !paragraph || !buttonText || !buttonLink) {
+      res.status(400).json({ error: "Debes enviar todos los campos, espabila!!" });
     }
 
     await connectToMongo();
-    const nuevaFrase = new HeroInfo({ text, author }); //Toma los datos que envia el usuario
+    const nuevaFrase = new HeroInfo({ image, title, paragraph, buttonText, buttonLink }); //Toma los datos que envia el usuario
     await nuevaFrase.save(); // Lo guarda en la base de datos
     res.status(201).json(nuevaFrase); //Responder la frase recien creada
   } catch (error) {
@@ -113,16 +116,16 @@ app.post("/api/hero", async (req: Request, res: Response) => {
 // PUT DE LAS FRASES
 app.put("/api/hero/:id", async (req: Request, res: Response) => {
   try {
-    const { text, author } = req.body;
-    if (!text || !author) {
-      res.status(400).json({ error: "Debes enviar texto y autor, espabila!!" });
+    const { image, title, paragraph, buttonText, buttonLink } = req.body;
+    if (!image || !title || !paragraph || !buttonText || !buttonLink) {
+      res.status(400).json({ error: "Debes enviar todos los campos, espabila!!" });
       return;
     }
 
     await connectToMongo();
     const fraseActualizada = await HeroInfo.findByIdAndUpdate(
       req.params.id,
-      { text, author },
+      { image, title, paragraph, buttonText, buttonLink },
       { returnDocument: "after" },
     );
 
