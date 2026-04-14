@@ -64,7 +64,7 @@ const getMongoDebugInfo = () => {
 // 5.- Crearemos todas las rutas, get, post, todo esto vamos a configurarlo en vercel.
 
 // Para debug
-app.get("/api/hero", async (req: Request, res: Response) => {
+app.get("/api/hero/debug", async (req: Request, res: Response) => {
   try {
     await connectToMongo();
     res.json(getMongoDebugInfo());
