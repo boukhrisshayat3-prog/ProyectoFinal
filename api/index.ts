@@ -39,7 +39,7 @@ const connectToMongo = async () => {
 
 // 4.- Creamos el molde (Esquema para nuestras frases)
 
-const HeroInfoSchema = new mongoose.Schema(
+const HeroSchema = new mongoose.Schema(
   {
     image: String,
     title: String,
@@ -52,12 +52,12 @@ const HeroInfoSchema = new mongoose.Schema(
   },
 );
 
-const HeroInfo = mongoose.models.HeroInfo || mongoose.model("HeroInfo", HeroInfoSchema);
+const Hero = mongoose.models.Heroes || mongoose.model("Hero", HeroSchema);
 
 const getMongoDebugInfo = () => {
   return {
     database: currentDatabase || mongoose.connection.name,
-    collection: HeroInfo.collection.name,
+    collection: Hero.collection.name,
     readyState: mongoose.connection.readyState,
   };
 };
@@ -81,12 +81,12 @@ app.get("/api/hero", async (req: Request, res: Response) => {
 app.get("/api/hero", async (req: Request, res: Response) => {
   try {
     await connectToMongo();
-    const frases = await HeroInfo.find();
-    res.json(frases);
+    const heroes = await Hero.find();
+    res.json(heroes);
   } catch (error) {
-    console.error("Error al leer frases", error);
+    console.error("Error al leer heroes", error);
     res.status(500).json({
-      error: "No se pudieron obtener las frases",
+      error: "No se pudieron obtener los heroes",
       detail: error instanceof Error ? error.message : "Error Desconocido",
     });
   }
@@ -101,13 +101,13 @@ app.post("/api/hero", async (req: Request, res: Response) => {
     }
 
     await connectToMongo();
-    const nuevaFrase = new HeroInfo({ image, title, paragraph, buttonText, buttonLink }); //Toma los datos que envia el usuario
-    await nuevaFrase.save(); // Lo guarda en la base de datos
-    res.status(201).json(nuevaFrase); //Responder la frase recien creada
+    const nuevaHero = new Hero({ image, title, paragraph, buttonText, buttonLink }); //Toma los datos que envia el usuario
+    await nuevaHero.save(); // Lo guarda en la base de datos
+    res.status(201).json(nuevaHero); //Responder la frase recien creada
   } catch (error) {
-    console.error("Error al crear la frase:", error);
+    console.error("Error al crear la heroInfo:", error);
     res.status(500).json({
-      error: "No se pudieron obtener las frases",
+      error: "No se pudieron obtener las heroInfos",
       detail: error instanceof Error ? error.message : "Error Desconocido",
     });
   }
@@ -123,22 +123,22 @@ app.put("/api/hero/:id", async (req: Request, res: Response) => {
     }
 
     await connectToMongo();
-    const fraseActualizada = await HeroInfo.findByIdAndUpdate(
+    const fraseActualizada = await Hero.findByIdAndUpdate(
       req.params.id,
       { image, title, paragraph, buttonText, buttonLink },
       { returnDocument: "after" },
     );
 
     if (!fraseActualizada) {
-      res.status(404).json({ error: "Frase no encontrada" });
+      res.status(404).json({ error: "Hero no encontrada" });
       return;
     }
 
     res.json(fraseActualizada);
   } catch (error) {
-    console.error("Error al actualizar la frase:", error);
+    console.error("Error al actualizar la hero:", error);
     res.status(500).json({
-      error: "No se pudo actualizar la frase",
+      error: "No se pudo actualizar la hero",
       detail: error instanceof Error ? error.message : "Error Desconocido",
     });
   }
@@ -148,21 +148,21 @@ app.put("/api/hero/:id", async (req: Request, res: Response) => {
 app.delete("/api/hero/:id", async (req: Request, res: Response) => {
   try {
     await connectToMongo();
-    const fraseEliminada = await HeroInfo.findByIdAndDelete(req.params.id);
+    const fraseEliminada = await Hero.findByIdAndDelete(req.params.id);
 
     if (!fraseEliminada) {
-      res.status(404).json({ error: "Frase no encontrada" });
+      res.status(404).json({ error: "Hero no encontrada" });
       return;
     }
 
     res.json({
-      message: "Frase eliminada correctamente",
+      message: "Hero eliminada correctamente",
       frase: fraseEliminada,
     });
   } catch (error) {
-    console.error("Error al eliminar la frase:", error);
+    console.error("Error al eliminar la hero:", error);
     res.status(500).json({
-      error: "No se pudo eliminar la frase",
+      error: "No se pudo eliminar la hero",
       detail: error instanceof Error ? error.message : "Error Desconocido",
     });
   }
