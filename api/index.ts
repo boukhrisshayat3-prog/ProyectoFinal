@@ -37,7 +37,7 @@ async function connectToMongo() {
 
 // 4.- Creamos el molde (Esquema para nuestras healing spaces))
 
-const HealingSpaceSchema = new mongoose.Schema(
+const HeroInfoSchema = new mongoose.Schema(
     {
         image: String,
         title: String,
@@ -46,25 +46,25 @@ const HealingSpaceSchema = new mongoose.Schema(
         buttonLink: String
     },
     {
-        collection: "HealingSpace"
+        collection: "HeroInfo"
     }
 );
 
-const HealingSpace = mongoose.models.HealingSpace || mongoose.model("HealingSpace", HealingSpaceSchema);
+const HeroInfo = mongoose.models.HeroInfo || mongoose.model("HeroInfo", HeroInfoSchema);
 function getMongoDebugInfo(){
     return{
         database: currentDatabase || mongoose.connection.name,
-        collection: HealingSpace.collection.name,
+        collection: HeroInfo.collection.name,
         readyState: mongoose.connection.readyState,
     }
 }
 
 // 5.- Crearemos todas las rutas, get, post, todo esto vamos a configurarlo en vercel.
-app.get("/api/healing-spaces", async (req: Request, res: Response) => {
+app.get("/api/Hero-Info", async (req: Request, res: Response) => {
     try {
         await connectToMongo();
-        const healingSpaces = await HealingSpace.find();
-        res.json(healingSpaces);
+        const heroInfos = await HeroInfo.find();
+        res.json(heroInfos);
     } catch (error) {
         console.error("Error al obtener las frases:", error);
         res.status(500).json({ 
@@ -74,7 +74,7 @@ app.get("/api/healing-spaces", async (req: Request, res: Response) => {
     }
 });
 
-app.post("/api/healing-spaces", async (req: Request, res: Response) => {
+app.post("/api/Hero-Info", async (req: Request, res: Response) => {
     try {
         await connectToMongo();
         const { image, title, paragraph, buttonText, buttonLink } = req.body;
@@ -82,9 +82,9 @@ app.post("/api/healing-spaces", async (req: Request, res: Response) => {
             return res.status(400).json({ error: "Faltan campos obligatorios" });
         }
         await connectToMongo();
-        const nuevoHealingSpace = new HealingSpace({ image, title, paragraph, buttonText, buttonLink });
-        await nuevoHealingSpace.save();
-        res.status(201).json(nuevoHealingSpace); // raha creada y dir nueva frase creada 
+        const nuevoHeroInfo = new HeroInfo({ image, title, paragraph, buttonText, buttonLink });
+        await nuevoHeroInfo.save();
+        res.status(201).json(nuevoHeroInfo); // raha creada y dir nueva frase creada 
 
     } catch (error) {
         console.error("Error al crear la frase:", error);
