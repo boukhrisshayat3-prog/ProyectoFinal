@@ -70,6 +70,7 @@ const getMongoDebugInfo = () => {
   return {
     database: currentDatabase || mongoose.connection.name,
     collection: Hero.collection.name,
+    userCollection: User.collection.name,
     readyState: mongoose.connection.readyState,
   };
 };
