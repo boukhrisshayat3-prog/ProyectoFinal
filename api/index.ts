@@ -59,7 +59,7 @@ const UserSchema = new mongoose.Schema(
     role: String,
   },
   {
-    collection: "UsersInfo",
+    collection: "User",
   },
 );
 
