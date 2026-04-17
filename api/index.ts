@@ -63,14 +63,32 @@ const UserSchema = new mongoose.Schema(
   },
 );
 
+const ProjectSchema = new mongoose.Schema(
+  {
+    _id: String,
+    title: String,
+    description: String,
+    image: String,
+    tags: [String],
+    link: String,
+    github: String
+  },
+  {
+    collection: "Project",
+  },
+);
+
+
 const Hero = mongoose.models.Heroes || mongoose.model("Hero", HeroSchema);
 const User = mongoose.models.User || mongoose.model("User", UserSchema);
+const Project = mongoose.models.Project || mongoose.model("Project", ProjectSchema);
 
 const getMongoDebugInfo = () => {
   return {
     database: currentDatabase || mongoose.connection.name,
     collection: Hero.collection.name,
     userCollection: User.collection.name,
+    projectCollection: Project.collection.name,
     readyState: mongoose.connection.readyState,
   };
 };
@@ -268,6 +286,98 @@ app.delete("/api/users/:id", async (req: Request, res: Response) => {
     console.error("Error al eliminar el user:", error);
     res.status(500).json({
       error: "No se pudo eliminar el user",
+      detail: error instanceof Error ? error.message : "Error Desconocido",
+    });
+  }
+});
+
+// GET DE LOS PROJECTS
+app.get("/api/projects", async (req: Request, res: Response) => {
+  try {
+    await connectToMongo();
+    const projects = await Project.find();
+    res.json(projects);
+  } catch (error) {
+    console.error("Error al leer projects", error);
+    res.status(500).json({
+      error: "No se pudieron obtener los projects",
+      detail: error instanceof Error ? error.message : "Error Desconocido",
+    });
+  }
+});
+
+// POST DE LOS PROJECTS
+app.post("/api/projects", async (req: Request, res: Response) => {
+  try {
+    const { _id, title, description, image, tags, link, github } = req.body;
+    if (!_id || !title || !description || !image || !tags || !link || !github) {
+      res.status(400).json({ error: "Debes enviar todos los campos, espabila!!" });
+      return;
+    }
+
+    await connectToMongo();
+    const nuevoProject = new Project({ _id, title, description, image, tags, link, github });
+    await nuevoProject.save();
+    res.status(201).json(nuevoProject);
+  } catch (error) {
+    console.error("Error al crear el project:", error);
+    res.status(500).json({
+      error: "No se pudo crear el project",
+      detail: error instanceof Error ? error.message : "Error Desconocido",
+    });
+  }
+});
+
+// PUT DE LOS PROJECTS
+app.put("/api/projects/:id", async (req: Request, res: Response) => {
+  try {
+    const { title, description, image, tags, link, github } = req.body;
+    if (!title || !description || !image || !tags || !link || !github) {
+      res.status(400).json({ error: "Debes enviar todos los campos, espabila!!" });
+      return;
+    }
+
+    await connectToMongo();
+    const projectActualizado = await Project.findByIdAndUpdate(
+      req.params.id,
+      { title, description, image, tags, link, github },
+      { returnDocument: "after" },
+    );
+
+    if (!projectActualizado) {
+      res.status(404).json({ error: "Project no encontrado" });
+      return;
+    }
+
+    res.json(projectActualizado);
+  } catch (error) {
+    console.error("Error al actualizar el project:", error);
+    res.status(500).json({
+      error: "No se pudo actualizar el project",
+      detail: error instanceof Error ? error.message : "Error Desconocido",
+    });
+  }
+});
+
+// DELETE DE LOS PROJECTS
+app.delete("/api/projects/:id", async (req: Request, res: Response) => {
+  try {
+    await connectToMongo();
+    const projectEliminado = await Project.findByIdAndDelete(req.params.id);
+
+    if (!projectEliminado) {
+      res.status(404).json({ error: "Project no encontrado" });
+      return;
+    }
+
+    res.json({
+      message: "Project eliminado correctamente",
+      project: projectEliminado,
+    });
+  } catch (error) {
+    console.error("Error al eliminar el project:", error);
+    res.status(500).json({
+      error: "No se pudo eliminar el project",
       detail: error instanceof Error ? error.message : "Error Desconocido",
     });
   }
