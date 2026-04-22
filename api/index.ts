@@ -78,10 +78,25 @@ const ProjectSchema = new mongoose.Schema(
   },
 );
 
+const ExperienceSchema = new mongoose.Schema(
+  {
+    period: String,
+    role: String,
+    company: String,
+    description: String,
+    technologies: [String],
+    current: Boolean,
+  },
+  {
+    collection: "Experience",
+  },
+);
+
 
 const Hero = mongoose.models.Heroes || mongoose.model("Hero", HeroSchema);
 const User = mongoose.models.User || mongoose.model("User", UserSchema);
 const Project = mongoose.models.Project || mongoose.model("Projects", ProjectSchema);
+const Experience = mongoose.models.Experience || mongoose.model("Experience", ExperienceSchema);
 
 const getMongoDebugInfo = () => {
   return {
@@ -89,6 +104,7 @@ const getMongoDebugInfo = () => {
     collection: Hero.collection.name,
     userCollection: User.collection.name,
     projectCollection: Project.collection.name,
+    experienceCollection: Experience.collection.name,
     readyState: mongoose.connection.readyState,
   };
 };
@@ -378,6 +394,121 @@ app.delete("/api/projects/:id", async (req: Request, res: Response) => {
     console.error("Error al eliminar el project:", error);
     res.status(500).json({
       error: "No se pudo eliminar el project",
+      detail: error instanceof Error ? error.message : "Error Desconocido",
+    });
+  }
+});
+
+// GET DE LAS EXPERIENCES
+app.get("/api/experience", async (req: Request, res: Response) => {
+  try {
+    await connectToMongo();
+    const experiences = await Experience.find();
+    res.json(experiences);
+  } catch (error) {
+    console.error("Error al leer experiences", error);
+    res.status(500).json({
+      error: "No se pudieron obtener las experiences",
+      detail: error instanceof Error ? error.message : "Error Desconocido",
+    });
+  }
+});
+
+// POST DE LAS EXPERIENCES
+app.post("/api/experience", async (req: Request, res: Response) => {
+  try {
+    const { _id, period, role, company, description, technologies, current } = req.body;
+    if (
+      !_id
+      || !period
+      || !role
+      || !company
+      || !description
+      || !Array.isArray(technologies)
+      || current === undefined
+    ) {
+      res.status(400).json({ error: "Debes enviar todos los campos, espabila!!" });
+      return;
+    }
+
+    await connectToMongo();
+    const nuevaExperience = new Experience({
+      _id,
+      period,
+      role,
+      company,
+      description,
+      technologies,
+      current,
+    });
+    await nuevaExperience.save();
+    res.status(201).json(nuevaExperience);
+  } catch (error) {
+    console.error("Error al crear la experience:", error);
+    res.status(500).json({
+      error: "No se pudo crear la experience",
+      detail: error instanceof Error ? error.message : "Error Desconocido",
+    });
+  }
+});
+
+// PUT DE LAS EXPERIENCES
+app.put("/api/experience/:id", async (req: Request, res: Response) => {
+  try {
+    const { period, role, company, description, technologies, current } = req.body;
+    if (
+      !period
+      || !role
+      || !company
+      || !description
+      || !Array.isArray(technologies)
+      || current === undefined
+    ) {
+      res.status(400).json({ error: "Debes enviar todos los campos, espabila!!" });
+      return;
+    }
+
+    await connectToMongo();
+    const experienceActualizada = await Experience.findByIdAndUpdate(
+      req.params.id,
+      { period, role, company, description, technologies, current },
+      { returnDocument: "after" },
+    );
+
+    if (!experienceActualizada) {
+      res.status(404).json({ error: "Experience no encontrada" });
+      return;
+    }
+
+    res.json(experienceActualizada);
+  } catch (error) {
+    console.error("Error al actualizar la experience:", error);
+    res.status(500).json({
+      error: "No se pudo actualizar la experience",
+      detail: error instanceof Error ? error.message : "Error Desconocido",
+    });
+  }
+});
+
+// DELETE DE LAS EXPERIENCES
+app.delete("/api/experience/:id", async (req: Request, res: Response) => {
+  try {
+    await connectToMongo();
+    const experienceEliminada = await Experience.findByIdAndDelete(req.params.id);
+
+    if (!experienceEliminada) {
+      res.status(404).json({ error: "Experience no encontrada" });
+      return;
+    }
+
+    res.json({
+      message: "Experience eliminada correctamente",
+      experience: experienceEliminada,
+    });
+  } catch (error) {
+    console.error("Error al eliminar la experience:", error);
+    res.status(500).json({
+      error: "No se pudo eliminar la experience",
       detail: error instanceof Error ? error.message : "Error Desconocido",
     });
   }
